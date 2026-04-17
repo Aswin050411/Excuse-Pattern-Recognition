@@ -136,16 +136,16 @@ The server will start at `http://127.0.0.1:5000`
 ### Default Login Credentials
 
 **Admin Account:**
-- Email: `admin@example.com`
-- Password: `admin123`
+- Email: `admin@excuseai.com`
+- Password: `Admin@2026`
 
 **Manager Account:**
-- Email: `manager@example.com`
-- Password: `manager123`
+- Email: `manager@excuseai.com`
+- Password: `Manager@2026`
 
 **Employee Account:**
-- Email: `employee@example.com`
-- Password: `employee123`
+- Email: `employee@excuseai.com`
+- Password: `Employee@2026`
 
 ### Core Workflows
 
