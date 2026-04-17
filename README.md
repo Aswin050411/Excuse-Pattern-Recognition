@@ -266,10 +266,10 @@ This project is developed for academic purposes.
 
 Developed as a college final year project
 Team:
-1.Aswin.E
-2.Nadesh.M
-3.vignesh.R
-4.Inba Everton.M
+- Aswin.E
+- Nadesh.M
+- vignesh.R
+- Inba Everton.M
 
 ## 🙏 Acknowledgments
 
