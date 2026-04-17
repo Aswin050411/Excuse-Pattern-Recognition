@@ -1,0 +1,716 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — EXCUSE_AI{% endblock %}
+{% block breadcrumb %}Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+    .dashboard-container {
+        padding: 24px 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    /* --- Header --- */
+    .dash-header {
+        margin-bottom: 36px;
+    }
+
+    .dash-header h1 {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: -0.5px;
+        margin: 0 0 6px;
+    }
+
+    .dash-header .dash-subtitle {
+        font-size: 13px;
+        color: #ffffff;
+    }
+
+    .dash-header .dash-subtitle span {
+        color: #39d3f2;
+        font-weight: 600;
+    }
+
+    /* --- Overview Stat Cards --- */
+    .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 32px;
+    }
+
+    @media (max-width: 1200px) {
+        .overview-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .overview-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    .stat-card {
+        background: rgba(13, 17, 23, 0.8) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+        border-radius: 12px !important;
+        padding: 16px 20px !important;
+        transition: all 0.25s ease !important;
+        position: relative !important;
+        overflow: hidden !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    .stat-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: var(--card-accent, #39d3f2);
+        opacity: 0.4;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-card .stat-label {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: #ffffff;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    .stat-card .stat-value {
+        font-family: var(--font-mono);
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--card-accent, #fff);
+        line-height: 1;
+    }
+
+    .stat-card .stat-sub {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: #ffffff;
+        margin-top: 10px;
+    }
+
+    .stat-trend {
+        font-size: 12px;
+        font-weight: 600;
+        margin-left: 8px;
+    }
+
+    .trend-up {
+        color: #9ece6a;
+    }
+
+    .trend-down {
+        color: #f7768e;
+    }
+
+    /* --- Excuse Pattern Section --- */
+    .excuse-section {
+        margin-bottom: 32px;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+    .section-title {
+        font-family: var(--font-mono);
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .section-badge {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        padding: 3px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+    }
+
+    .excuse-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 20px;
+    }
+
+    @media (max-width: 900px) {
+        .excuse-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .excuse-stat-card {
+        background: rgba(13, 17, 23, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-left: 3px solid var(--card-accent, #39d3f2);
+        border-radius: 0 12px 12px 0;
+        padding: 18px 20px;
+        transition: all 0.2s ease;
+    }
+
+    .excuse-stat-card:hover {
+        border-color: rgba(255, 255, 255, 0.1);
+        background: rgba(13, 17, 23, 0.9);
+    }
+
+    .excuse-stat-card .mini-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        color: #ffffff;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .excuse-stat-card .mini-value {
+        font-family: var(--font-mono);
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--card-accent, #fff);
+        line-height: 1;
+    }
+
+    /* --- Chart Container --- */
+    .chart-container {
+        background: rgba(13, 17, 23, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 380px;
+    }
+
+    .chart-container .chart-title {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: #ffffff;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+    /* --- Main Layout (Tasks + Sidebar) --- */
+    .main-layout {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 24px;
+    }
+
+    @media (max-width: 1100px) {
+        .main-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* --- Task Cards --- */
+    .task-card {
+        background: rgba(13, 17, 23, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 14px;
+        padding: 18px 22px;
+        margin-bottom: 12px;
+        display: block;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        position: relative;
+    }
+
+    .task-card:hover {
+        background: rgba(255, 255, 255, 0.03);
+        border-color: rgba(57, 211, 242, 0.2);
+        transform: translateX(4px);
+    }
+
+    .task-card .task-title {
+        color: #fff;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .task-card .task-desc {
+        color: #ffffff;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+    .task-card .task-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 12px;
+        font-size: 11px;
+        color: #ffffff;
+    }
+
+    .task-card .task-meta i {
+        width: 12px;
+        height: 12px;
+    }
+
+    .priority-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .priority-high {
+        background: rgba(247, 118, 142, 0.12);
+        color: #f7768e;
+        border: 1px solid rgba(247, 118, 142, 0.25);
+    }
+
+    .priority-medium {
+        background: rgba(122, 162, 247, 0.12);
+        color: #7aa2f7;
+        border: 1px solid rgba(122, 162, 247, 0.25);
+    }
+
+    .priority-low {
+        background: rgba(158, 206, 106, 0.12);
+        color: #9ece6a;
+        border: 1px solid rgba(158, 206, 106, 0.25);
+    }
+
+    /* --- Sidebar Panels --- */
+    .sidebar-panel {
+        background: rgba(13, 17, 23, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-bottom: 16px;
+    }
+
+    .sidebar-panel .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .sidebar-panel .panel-title {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    /* --- Team Resilience --- */
+    .resilience-score {
+        font-family: var(--font-mono);
+        font-size: 42px;
+        font-weight: 900;
+        text-align: center;
+        margin: 16px 0 8px;
+    }
+
+    .resilience-label {
+        text-align: center;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        color: #ffffff;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+    .res-optimal {
+        color: #9ece6a;
+    }
+
+    .res-warning {
+        color: #e0af68;
+    }
+
+    .res-critical {
+        color: #f7768e;
+    }
+
+    .meter-bar {
+        height: 4px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 2px;
+        overflow: hidden;
+    }
+
+    .meter-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #39d3f2, #94e2d5);
+        box-shadow: 0 0 12px rgba(57, 211, 242, 0.35);
+        transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* --- AI Insights --- */
+    .insight-item {
+        display: flex;
+        gap: 12px;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transition: all 0.2s ease;
+    }
+
+    .insight-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .insight-item:hover {
+        background: rgba(255, 255, 255, 0.04);
+        border-color: rgba(57, 211, 242, 0.15);
+    }
+
+    .insight-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #39d3f2;
+        box-shadow: 0 0 8px rgba(57, 211, 242, 0.5);
+        flex-shrink: 0;
+        margin-top: 5px;
+    }
+
+    .insight-text {
+        font-size: 12px;
+        color: #ffffff;
+        line-height: 1.55;
+    }
+
+    .stability-section {
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .stability-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 10px;
+        font-weight: 600;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+    }
+
+    .empty-state {
+        padding: 48px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.015);
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        color: #ffffff;
+        font-size: 12px;
+    }
+
+    /* --- Prescription Panel --- */
+    .prescription-panel {
+        background: linear-gradient(135deg, rgba(122, 162, 247, 0.04), rgba(13, 17, 23, 0.85));
+        border: 1px solid rgba(122, 162, 247, 0.15);
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-bottom: 16px;
+    }
+
+    .prescription-item {
+        padding: 10px 14px;
+        background: rgba(122, 162, 247, 0.04);
+        border: 1px solid rgba(122, 162, 247, 0.1);
+        border-radius: 10px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: #ffffff;
+        line-height: 1.5;
+    }
+
+    .prescription-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .overview-grid,
+    .excuse-stats {
+        grid-template-columns: repeat(4, 1fr);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- Header -->
+    <div class="dash-header">
+        <h1>Dashboard</h1>
+        <div class="dash-subtitle">Welcome back, <span>{{ user_name }}</span> — All systems operational</div>
+    </div>
+
+    <!-- Overview Stats -->
+    <div class="overview-grid">
+        <div class="stat-card" style="--card-accent: #39d3f2;">
+            <div class="stat-label">Pending Tasks</div>
+            <div class="stat-value">{{ counts.pending }}</div>
+            <div class="stat-sub">In queue</div>
+        </div>
+        <div class="stat-card" style="--card-accent: #9ece6a;">
+            <div class="stat-label">Efficiency</div>
+            <div style="display:flex; align-items:baseline;">
+                <div class="stat-value">{{ counts.efficiency }}%</div>
+                {% set trend = counts.efficiency_trend | default(0) %}
+                <span class="stat-trend {% if trend >= 0 %}trend-up{% else %}trend-down{% endif %}">
+                    {{ '↑' if trend >= 0 else '↓' }} {{ trend | abs }}%
+                </span>
+            </div>
+            <div class="stat-sub">Performance score</div>
+        </div>
+        <div class="stat-card" style="--card-accent: #7aa2f7; color: #ffffff;">
+            <div class="stat-label">Audit Rating</div>
+            <div style="display:flex; align-items:baseline;">
+                <div class="stat-value">{{ counts.auth_score }}%</div>
+                {% set trend = counts.auth_trend | default(0) %}
+                <span class="stat-trend {% if trend >= 0 %}trend-up{% else %}trend-down{% endif %}">
+                    {{ '↑' if trend >= 0 else '↓' }} {{ trend | abs }}%
+                </span>
+            </div>
+            <div class="stat-sub">Verification baseline</div>
+        </div>
+        <div class="stat-card" style="--card-accent: #f7768e; color: #ffffff;">
+            <div class="stat-label">Delay Index</div>
+            <div style="display:flex; align-items:baseline;">
+                <div class="stat-value">{{ counts.risk_avg or 0 }}%</div>
+                {% set trend = counts.risk_trend | default(0) %}
+                <span class="stat-trend {% if trend <= 0 %}trend-up{% else %}trend-down{% endif %}">
+                    {{ '↓' if trend <= 0 else '↑' }} {{ trend | abs }}% </span>
+            </div>
+            <div class="stat-sub">Report analysis</div>
+        </div>
+    </div>
+
+    <!-- Excuse Pattern AI Section -->
+    {% set total_analyzed = (analytics.total_delays or 0) %}
+    {% set suspicious_count = (analytics.risk_high or 0) %}
+    {% set review_count = (analytics.risk_med or 0) %}
+    {% set genuine_count = (analytics.risk_low or 0) %}
+    {% set avg_conf = (analytics.avg_auth_score or 0)|round(1) %}
+
+    <div class="excuse-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="scan-eye" style="color:#f59e0b; width:18px;"></i>
+                AI Analysis Engine
+            </h2>
+            <span class="section-badge"
+                style="background:rgba(245,158,11,0.1); color:#f59e0b; border:1px solid rgba(245,158,11,0.2);">Behavioral
+                Engine</span>
+        </div>
+
+        <div class="excuse-stats">
+            <div class="excuse-stat-card" style="--card-accent: #39d3f2;">
+                <div class="mini-label">Total Reports</div>
+                <div class="mini-value">{{ total_analyzed }}</div>
+            </div>
+            <div class="excuse-stat-card" style="--card-accent: #f97316;">
+                <div class="mini-label">High Priority</div>
+                <div class="mini-value">{{ suspicious_count }}</div>
+            </div>
+            <div class="excuse-stat-card" style="--card-accent: #10b981;">
+                <div class="mini-label">Verified Normal</div>
+                <div class="mini-value">{{ genuine_count }}</div>
+            </div>
+            <div class="excuse-stat-card" style="--card-accent: #7aa2f7;">
+                <div class="mini-label">Analysis Confidence</div>
+                <div class="mini-value">{{ avg_conf }}%</div>
+            </div>
+        </div>
+
+        {% if total_analyzed > 0 %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <div class="chart-container" style="max-width: none;">
+                <div class="chart-title">Classification Distribution</div>
+                <canvas id="excuseChart" data-suspicious="{{ suspicious_count }}" data-review="{{ review_count }}"
+                    data-genuine="{{ genuine_count }}" style="max-height: 200px;"></canvas>
+            </div>
+            <!-- Empty space for now to match chart placement -->
+            <div></div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Layout: Tasks + Sidebar -->
+<div class="main-layout">
+
+    <!-- Tasks Column -->
+    <div>
+        <div class="section-header">
+            <h2 class="section-title">
+                <i data-lucide="layers" style="color:#39d3f2; width:18px;"></i>
+                Active Tasks
+            </h2>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <a href="{{ url_for('tasks.tasks') }}" class="btn btn-default"
+                    style="font-size:11px; padding:6px 14px; border-radius:8px;">View All</a>
+                <a href="{{ url_for('tasks.new_task') }}"
+                    style="display:inline-flex; align-items:center; gap:6px; padding:6px 14px; background:rgba(57,211,242,0.1); border:1px solid rgba(57,211,242,0.25); border-radius:8px; color:#39d3f2; font-size:11px; font-weight:600; text-decoration:none; transition:all 0.2s;"
+                    onmouseover="this.style.background='rgba(57,211,242,0.18)'"
+                    onmouseout="this.style.background='rgba(57,211,242,0.1)'">
+                    <i data-lucide="plus" style="width:12px; height:12px;"></i> New Task
+                </a>
+            </div>
+        </div>
+
+        {% if active_tasks %}
+        {% for task in active_tasks %}
+        <a href="{{ url_for('tasks.task_details', task_id=task.id) }}" class="task-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="flex:1; min-width:0;">
+                    <div class="task-title">{{ task.title }}</div>
+                    <div class="task-desc">
+                        {{ (task.description[:100] ~ '...') if task.description is defined and task.description
+                        else 'No description available.' }}
+                    </div>
+                </div>
+                <span class="priority-badge priority-{{ task.priority|lower }}">
+                    {{ task.priority }}
+                </span>
+            </div>
+            <div class="task-meta">
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <i data-lucide="clock"></i> {{ task.deadline }}
+                </div>
+                <div style="display:flex; align-items:center; gap:5px;">
+                    <i data-lucide="shield-alert"></i>
+                    Risk: <strong
+                        class="{% if task.risk_score > 70 %}risk-high{% elif task.risk_score > 40 %}risk-warn{% else %}risk-ok{% endif %}">{{
+                        task.risk_score }}%</strong>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            No active tasks — You're all caught up!
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div>
+
+        <!-- Strategic Prescriptions -->
+        {% set prescriptions = ai_insights|selectattr('category', 'equalto', 'prescription')|list %}
+        {% if prescriptions %}
+        <div class="prescription-panel">
+            <div class="panel-header" style="margin-bottom:14px;">
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <i data-lucide="zap" style="width:14px; color:#7aa2f7;"></i>
+                    <div class="panel-title">Strategic Actions</div>
+                </div>
+            </div>
+            {% for p in prescriptions %}
+            <div class="prescription-item">{{ p.text }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        // Animate meter fills
+        document.querySelectorAll('.meter-fill[data-width]').forEach(el => {
+            setTimeout(() => {
+                el.style.width = el.getAttribute('data-width') + '%';
+            }, 300);
+        });
+
+        // AI Excuse Classification Chart
+        const ctx = document.getElementById('excuseChart');
+        if (ctx && typeof Chart !== 'undefined') {
+            const s = parseInt(ctx.dataset.suspicious) || 0;
+            const r = parseInt(ctx.dataset.review) || 0;
+            const g = parseInt(ctx.dataset.genuine) || 0;
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['High Priority', 'Needs Review', 'Normal'],
+                    datasets: [{
+                        data: [s, r, g],
+                        backgroundColor: [
+                            'rgba(249, 115, 22, 0.75)',
+                            'rgba(245, 158, 11, 0.75)',
+                            'rgba(16, 185, 129, 0.75)'
+                        ],
+                        borderColor: [
+                            'rgba(249, 115, 22, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ],
+                        borderWidth: 1,
+                        hoverOffset: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: 'rgba(255,255,255,0.45)',
+                                font: { size: 11 },
+                                padding: 14,
+                                usePointStyle: true,
+                                pointStyleWidth: 8
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

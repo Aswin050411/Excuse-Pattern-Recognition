@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}EXCUSE_AI — AI Behavioral Intelligence{% endblock %}
+
+{% block extra_head %}
+<!-- Neural Landing Page Styles -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/neural_landing.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <!-- Animated Background Layers -->
+    <div class="neural-mesh"></div>
+    <div class="neural-grid"></div>
+
+    <div class="wrapper">
+        <!-- NAV -->
+        <nav class="landing-nav">
+            <div class="logo">
+                <div class="logo-dot"></div>
+                EXCUSE_AI
+            </div>
+
+
+        </nav>
+
+        <!-- HERO -->
+        <section class="hero-minimal">
+            <div class="hero-content">
+                <div class="hero-eyebrow">
+                    <span class="eyebrow-line"></span>
+                    BEHAVIORAL INTELLIGENCE PLATFORM
+                </div>
+                <h1 class="hero-title">Detect patterns.<br><span class="glow-text">Uncover truth.</span></h1>
+                <p class="hero-desc">Advanced AI that identifies behavioral patterns, analyzes excuses, and delivers
+                    actionable intelligence for smarter workforce management.</p>
+                <div class="btn-group">
+                    <a href="{{ url_for('auth.login') }}" class="btn-neural-primary">
+                        Get Started
+                        <i data-lucide="arrow-right" style="width:16px;"></i>
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn-neural-outline">
+                        Create Account
+                        <i data-lucide="plus" style="width:16px;"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+{% endblock %}

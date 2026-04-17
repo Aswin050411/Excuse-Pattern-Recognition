@@ -1,0 +1,655 @@
+{% extends "base.html" %}
+
+{% block title %}Task Details — EXCUSE_AI{% endblock %}
+{% block breadcrumb %}Tasks / {{ task.id|string|truncate(8, True, '') }}{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --accent: #39d3f2;
+        --accent-dim: rgba(57, 211, 242, 0.15);
+        --accent-glow: 0 0 28px rgba(57, 211, 242, 0.22);
+        --panel-bg: rgba(10, 14, 20, 0.78);
+        --panel-bdr: rgba(57, 211, 242, 0.13);
+        --glass: blur(28px);
+        --red: #ef4444;
+        --red-dim: rgba(239, 68, 68, 0.15);
+        --orange: #f97316;
+        --orange-dim: rgba(249, 115, 22, 0.15);
+        --green: #10b981;
+        --green-dim: rgba(16, 185, 129, 0.15);
+        --amber: #f59e0b;
+        --amber-dim: rgba(245, 158, 11, 0.15);
+        --pink: #f472b6;
+        --mono: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    .det-wrap {
+        padding: 40px 32px;
+        max-width: 1420px;
+        margin: 0 auto;
+        animation: fadeUp .45s ease;
+    }
+
+    .det-grid {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+    }
+
+    @media(max-width:1120px) {
+        .det-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .n-panel {
+        background: var(--panel-bg);
+        backdrop-filter: var(--glass);
+        -webkit-backdrop-filter: var(--glass);
+        border: 1px solid var(--panel-bdr);
+        border-radius: 24px;
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+        margin-bottom: 28px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .n-panel:hover {
+        box-shadow: var(--accent-glow);
+    }
+
+    .n-panel::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        opacity: 0.3;
+    }
+
+    .n-label {
+        font-family: var(--mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .n-label i {
+        color: var(--accent);
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Gauges */
+    .n-gauges {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .g-wrap {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 12px 8px;
+        border-radius: 14px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .g-svg {
+        transform: rotate(-90deg);
+        margin-bottom: 6px;
+    }
+
+    .g-circle {
+        fill: none;
+        stroke-width: 5;
+        stroke-linecap: round;
+        stroke-dasharray: 126;
+        stroke-dashoffset: 126;
+        transition: stroke-dashoffset 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .g-val {
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 800;
+        color: #fff;
+    }
+
+    .g-tag {
+        font-family: var(--mono);
+        font-size: 8px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-top: 3px;
+        text-transform: uppercase;
+    }
+
+    /* Verdict Badges */
+    .v-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 20px;
+        border-radius: 100px;
+        font-family: var(--mono);
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        border: 2px solid;
+    }
+
+    .v-REAL {
+        color: var(--green);
+        border-color: var(--green);
+        background: var(--green-dim);
+        box-shadow: 0 0 20px var(--green-dim);
+    }
+
+    .v-SUSPICIOUS {
+        color: var(--orange);
+        border-color: var(--orange);
+        background: var(--orange-dim);
+        box-shadow: 0 0 20px var(--orange-dim);
+    }
+
+    .v-FAKE {
+        color: var(--red);
+        border-color: var(--red);
+        background: var(--red-dim);
+        box-shadow: 0 0 25px var(--red-dim);
+        animation: v-shake 0.8s infinite;
+    }
+
+    .v-UNKNOWN {
+        color: rgba(255, 255, 255, 0.4);
+        border-color: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    @keyframes v-shake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-2px);
+        }
+
+        75% {
+            transform: translateX(2px);
+        }
+    }
+
+    .v-reason {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.75);
+        line-height: 1.6;
+        padding: 16px;
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        border-left: 3px solid var(--accent-dim);
+    }
+
+    .c-red {
+        color: var(--red);
+    }
+
+    .c-orange {
+        color: var(--orange);
+    }
+
+    .c-green {
+        color: var(--green);
+    }
+
+    .f-tag {
+        font-family: var(--mono);
+        font-size: 10px;
+        padding: 5px 12px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 6px;
+        color: rgba(255, 255, 255, 0.6);
+    }
+
+    .f-tag.bc-red {
+        border-color: var(--red);
+        background: var(--red-dim);
+        color: #fff;
+    }
+
+    .f-tag.bc-orange {
+        border-color: var(--orange);
+        background: var(--orange-dim);
+        color: #fff;
+    }
+
+    .btn-neural {
+        background: var(--accent-dim);
+        color: var(--accent);
+        border: 1px solid var(--accent);
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-family: var(--mono);
+        font-size: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-neural:hover {
+        background: var(--accent);
+        color: #000;
+    }
+
+    /* Delay card */
+    .delay-card {
+        background: rgba(255, 255, 255, 0.015);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 20px;
+        padding: 28px;
+        margin-bottom: 20px;
+    }
+
+    .delay-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        gap: 16px;
+    }
+
+    .delay-reason-text {
+        font-size: 15px;
+        color: #fff;
+        font-weight: 500;
+        font-style: italic;
+        margin-bottom: 20px;
+        padding: 14px 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        border-left: 3px solid rgba(57, 211, 242, 0.3);
+        line-height: 1.6;
+    }
+
+    .delay-metrics-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        z-index: 1000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="det-wrap">
+
+    <!-- Page Header -->
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:48px;">
+        <div>
+            <div class="n-label">
+                <i data-lucide="shield-check"></i>
+                TASK_DETAILS / ID_{{ task.id|string|truncate(12, True, '')|upper }}
+            </div>
+            <h1 style="color:#fff; font-size:40px; font-weight:800; letter-spacing:-1px; margin:0;">{{ task.title }}
+            </h1>
+        </div>
+        <a href="{{ url_for('tasks.tasks') }}" class="btn-neural"
+            style="background:transparent; border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.6);">
+            <i data-lucide="chevron-left"></i> BACK_TO_TASKS
+        </a>
+    </div>
+
+    <div class="det-grid">
+
+        <!-- ═══════════════════════════ MAIN COLUMN ═══════════════════════════ -->
+        <div class="main-col">
+
+            <!-- Task Overview Panel -->
+            <div class="n-panel">
+                <div class="n-label">
+                    <i data-lucide="file-text"></i>
+                    TASK_OVERVIEW
+                    <span style="margin-left:auto; color:var(--accent);">{{ task.status|upper }}</span>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:32px; margin-bottom:32px;">
+                    <div>
+                        <div class="n-label" style="font-size:9px; margin-bottom:10px;">PRIORITY</div>
+                        {% set p_class = 'c-red' if task.priority == 'High' else ('c-orange' if task.priority ==
+                        'Medium' else 'c-green') %}
+                        <div class="{{ p_class }}"
+                            style="display:flex; align-items:center; gap:8px; font-weight:800; font-size:16px; font-family:var(--mono);">
+                            <i data-lucide="activity" style="width:16px;"></i> {{ task.priority|upper }}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="n-label" style="font-size:9px; margin-bottom:10px;">DEADLINE</div>
+                        <div style="color:#fff; font-family:var(--mono); font-size:16px;">{{ task.deadline }}</div>
+                    </div>
+                </div>
+
+                <div class="n-label" style="font-size:9px; margin-bottom:12px;">DESCRIPTION</div>
+                <div
+                    style="background:rgba(0,0,0,0.25); padding:28px; border-radius:20px; border:1px solid rgba(255,255,255,0.04); color:rgba(255,255,255,0.85); line-height:1.8; font-size:15px;">
+                    {{ task.description or "No description provided." }}
+                </div>
+
+                {% if task.status != 'Completed' %}
+                <div
+                    style="margin-top:32px; display:flex; gap:16px; flex-wrap:wrap; padding-top:24px; border-top:1px solid rgba(255,255,255,0.05);">
+                    {% if task.status != 'Delayed' %}
+                    <form method="POST" action="{{ url_for('tasks.complete_task', task_id=task.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="btn-neural">
+                            <i data-lucide="check-circle"></i> MARK_AS_COMPLETED
+                        </button>
+                    </form>
+                    {% endif %}
+                    <button onclick="document.getElementById('modal-delay').style.display='flex'" class="btn-neural"
+                        style="border-color:var(--red); color:var(--red); background:var(--red-dim);">
+                        <i data-lucide="alert-triangle"></i> SUBMIT_DELAY
+                    </button>
+                    {% if delays %}
+                    <a href="{{ url_for('reports.task_report_view', task_id=task.id) }}" class="btn-neural"
+                        style="border-color:var(--pink); color:var(--pink); background:rgba(244,114,182,0.1);">
+                        <i data-lucide="bar-chart-big"></i> ANALYSIS_REPORT
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Delay History Panel -->
+            {% if delays %}
+            <div class="n-panel">
+                <div class="n-label"><i data-lucide="history"></i> DELAY_HISTORY</div>
+
+                {% for delay in delays %}
+                {% set snap = delay.ai_analysis_json | from_json if delay.ai_analysis_json is string else
+                delay.ai_analysis_json %}
+                {% set verdict = snap.get('verdict', 'UNKNOWN') if snap and snap is mapping else 'UNKNOWN' %}
+
+                <div class="delay-card">
+
+                    <!-- Card Header: Verdict + Meta + Risk + Delete -->
+                    <div class="delay-card-header">
+                        <div>
+                            <div style="font-family:var(--mono); font-size:11px; color:rgba(255,255,255,0.4);">
+                                SUBMITTED: {{ delay.submitted_at }}
+                            </div>
+                        </div>
+
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="text-align:right;">
+                                <div class="n-label"
+                                    style="margin-bottom:4px; font-size:9px; justify-content:flex-end;">RISK_LEVEL</div>
+                                {% set r_class = 'c-red' if delay.risk_level == 'High' else ('c-orange' if
+                                delay.risk_level == 'Medium' else 'c-green') %}
+                                <div class="{{ r_class }}"
+                                    style="font-family:var(--mono); font-weight:900; font-size:14px;">
+                                    {{ delay.risk_level|upper }}
+                                </div>
+                            </div>
+                            <form action="{{ url_for('tasks.delete_delay', delay_id=delay.id, task_id=task.id) }}"
+                                method="POST" onsubmit="return confirm('Delete this delay record?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit"
+                                    style="background:none; border:none; color:rgba(255,255,255,0.3); cursor:pointer; padding:6px; display:flex; align-items:center; border-radius:6px; transition:0.2s;"
+                                    title="Delete Delay"
+                                    onmouseover="this.style.background='rgba(239,68,68,0.1)';this.style.color='#ef4444'"
+                                    onmouseout="this.style.background='none';this.style.color='rgba(255,255,255,0.3)'">
+                                    <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Reason Text -->
+                    <div class="delay-reason-text">"{{ delay.reason_text }}"</div>
+
+                    <!-- AI Interpretation + Risk Metrics -->
+                    <div class="delay-metrics-grid">
+                        <div class="v-reason">
+                            <div class="n-label" style="font-size:8px; margin-bottom:8px;">AI_INTERPRETATION</div>
+                            {{ snap.get('ai_interpretation', {}).get('summary', 'NO_INTERPRETATION_GENERATED') if snap
+                            and snap is mapping else 'NO_INTERPRETATION_GENERATED' }}
+                        </div>
+                        <div>
+                            <div class="n-label" style="font-size:8px; margin-bottom:10px;">RISK_METRICS</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                <span class="f-tag"
+                                    style="background:var(--accent-dim); border-color:var(--accent); color:#fff; font-weight:800;">
+                                    AUTHENTICITY: {{ delay.score_authenticity or 0 }}%
+                                </span>
+                                <span class="f-tag">PRESSURE: {{ (snap.get('pressure') or snap.get('feature_vector',
+                                    {}).get('deadline_pressure', 0))|int }}%</span>
+                                <span class="f-tag">CONFIDENCE: {{ (snap.get('confidence') or
+                                    snap.get('confidence_score', 0))|int }}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </div>
+        <!-- ═══════════════════════════ END MAIN COLUMN ═══════════════════════════ -->
+
+        <!-- ═══════════════════════════ SIDE COLUMN ═══════════════════════════ -->
+        <div class="side-col">
+
+            <!-- AI Analysis Panel -->
+            <div class="n-panel" style="border-color:var(--accent); padding:20px;">
+                <div class="n-label" style="color:var(--accent); margin-bottom:16px;">
+                    <i data-lucide="cpu"></i> AI_ANALYSIS
+                </div>
+
+                {% if intelligence.intelligence_available %}
+                <div class="n-gauges">
+                    <div class="g-wrap">
+                        <svg class="g-svg" width="48" height="48">
+                            <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,0.05)" fill="none"
+                                stroke-width="5" />
+                            <circle class="g-circle js-g" cx="24" cy="24" r="20"
+                                data-val="{{ intelligence.neural_console.task_risk.score }}" stroke="var(--red)" />
+                        </svg>
+                        <div class="g-val">{{ intelligence.neural_console.task_risk.score|int }}</div>
+                        <div class="g-tag">RISK</div>
+                    </div>
+                    <div class="g-wrap">
+                        <svg class="g-svg" width="48" height="48">
+                            <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,0.05)" fill="none"
+                                stroke-width="5" />
+                            <circle class="g-circle js-g" cx="24" cy="24" r="20"
+                                data-val="{{ intelligence.neural_console.stability.score }}" stroke="var(--accent)" />
+                        </svg>
+                        <div class="g-val">{{ intelligence.neural_console.stability.score|int }}%</div>
+                        <div class="g-tag">RELIABILITY</div>
+                    </div>
+                    <div class="g-wrap">
+                        <svg class="g-svg" width="48" height="48">
+                            <circle cx="24" cy="24" r="20" stroke="rgba(255,255,255,0.05)" fill="none"
+                                stroke-width="5" />
+                            <circle class="g-circle js-g" cx="24" cy="24" r="20"
+                                data-val="{{ intelligence.neural_console.integrity.score }}" stroke="var(--green)" />
+                        </svg>
+                        <div class="g-val">{{ intelligence.neural_console.integrity.score|int }}</div>
+                        <div class="g-tag">COMPLIANCE</div>
+                    </div>
+                </div>
+
+                <div class="n-label" style="font-size:9px; margin-bottom:8px;">RISK_FACTORS</div>
+                <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:20px;">
+                    {% for flag in intelligence.flags %}
+                    {% set f_class = 'bc-red' if flag.severity == 'red' else 'bc-orange' %}
+                    <span class="f-tag {{ f_class }}" style="font-size:9px; padding:3px 9px;">{{ flag.label }}</span>
+                    {% endfor %}
+                    {% if not intelligence.flags %}
+                    <span
+                        style="font-size:10px; color:rgba(255,255,255,0.3); font-family:var(--mono);">NO_ISSUES_DETECTED</span>
+                    {% endif %}
+                </div>
+
+                <div class="n-label" style="font-size:9px; margin-bottom:8px;">RECOMMENDED_ACTIONS</div>
+                <ul style="padding:0; margin:0; list-style:none;">
+                    {% for rec in intelligence.recommendations %}
+                    <li style="display:flex; gap:8px; margin-bottom:8px; font-size:12px; color:rgba(255,255,255,0.75);">
+                        <i data-lucide="arrow-right-circle"
+                            style="width:12px; color:var(--accent); flex-shrink:0; margin-top:2px;"></i>
+                        {{ rec }}
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                {% else %}
+                <div style="text-align:center; padding:40px 0; color:rgba(255,255,255,0.15);">
+                    <i data-lucide="database" style="width:32px; height:32px; margin-bottom:16px;"></i>
+                    <div style="font-family:var(--mono); font-size:10px;">ANALYSIS_PENDING</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Team Metrics Panel -->
+            <div class="n-panel" style="padding:16px;">
+                <div class="n-label" style="margin-bottom:12px;">TEAM_METRICS</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                    <div
+                        style="background:rgba(255,255,255,0.02); padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                        <div class="g-tag" style="margin:0 0 4px;">PERCENTILE</div>
+                        <div style="font-size:16px; font-weight:800; color:#fff;">{{
+                            intelligence.peer_comparison.percentile | default(0) }}%</div>
+                    </div>
+                    <div
+                        style="background:rgba(255,255,255,0.02); padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">
+                        <div class="g-tag" style="margin:0 0 4px;">PRODUCTIVITY</div>
+                        <div style="font-size:16px; font-weight:800; color:var(--accent);">{{
+                            intelligence.peer_comparison.z_score | default(0) }}</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- ═══════════════════════════ END SIDE COLUMN ═══════════════════════════ -->
+
+    </div>
+</div>
+
+<!-- Modal: Delay Reporting -->
+<div id="modal-delay" class="modal-overlay">
+    <div class="n-panel"
+        style="width:500px; max-width:100%; border-color:var(--red); box-shadow:0 0 50px rgba(239,68,68,0.15); margin:0;">
+        <div style="display:flex; align-items:center; gap:12px; margin-bottom:28px;">
+            <div
+                style="width:40px; height:40px; background:var(--red-dim); border:1px solid var(--red); border-radius:10px; display:flex; align-items:center; justify-content:center; color:var(--red);">
+                <i data-lucide="zap"></i>
+            </div>
+            <div>
+                <h2 style="color:#fff; margin:0; font-size:20px; font-weight:800;">Submit Delay</h2>
+                <div style="font-family:var(--mono); font-size:10px; color:rgba(255,255,255,0.4);">DELAY_JUSTIFICATION
+                </div>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('tasks.submit_delay', task_id=task.id) }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div class="n-label" style="font-size:9px; margin-bottom:10px;">REASON_FOR_DELAY</div>
+            <textarea name="reason"
+                style="width:100%; height:140px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.1); border-radius:16px; color:#fff; padding:16px; font-size:15px; resize:none; margin-bottom:24px; outline:none; transition:border-color 0.2s; box-sizing:border-box;"
+                placeholder="Identify the source of temporal drift..." onfocus="this.style.borderColor='var(--accent)'"
+                onblur="this.style.borderColor='rgba(255,255,255,0.1)'" required></textarea>
+
+            <div class="n-label" style="font-size:9px; margin-bottom:10px;">EVIDENCE_UPLOAD (OPTIONAL)</div>
+            <div style="margin-bottom:32px;">
+                <input type="file" name="proof"
+                    style="font-size:12px; color:rgba(255,255,255,0.5); font-family:var(--mono);" />
+            </div>
+
+            <div style="display:flex; gap:12px;">
+                <button type="submit" class="btn-neural"
+                    style="flex:1; justify-content:center; background:var(--red); color:#fff; font-weight:800; border-color:var(--red);">
+                    SUBMIT_REPORT
+                </button>
+                <button type="button" onclick="document.getElementById('modal-delay').style.display='none'"
+                    class="btn-neural"
+                    style="background:transparent; border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.6);">
+                    CANCEL
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.lucide) lucide.createIcons();
+
+        // Animate gauges
+        setTimeout(() => {
+            document.querySelectorAll('.js-g').forEach(el => {
+                const val = parseFloat(el.dataset.val) || 0;
+                el.style.strokeDashoffset = 126 - (126 * Math.min(val, 100) / 100);
+            });
+        }, 500);
+
+        // Close modal on backdrop click
+        document.getElementById('modal-delay').addEventListener('click', function (e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Active_Tasks — EXCUSE_AI{% endblock %}
+{% block breadcrumb %}Tasks{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --task-accent: #39d3f2;
+        --task-bg: rgba(13, 17, 23, 0.8);
+        --task-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .tasks-main {
+        padding: 40px 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    /* --- Filter Bar --- */
+    .neural-filters {
+        background: var(--task-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--task-border);
+        border-radius: 20px;
+        padding: 16px 24px;
+        margin-bottom: 32px;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-input {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: #fff;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-family: var(--font-mono);
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    .filter-input:focus {
+        border-color: var(--task-accent);
+        box-shadow: 0 0 10px rgba(57, 211, 242, 0.1);
+    }
+
+    /* --- Task Cards --- */
+    .task-stack {
+        display: grid;
+        gap: 20px;
+    }
+
+    .task-entry-card {
+        background: var(--task-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--task-border);
+        border-radius: 24px;
+        padding: 30px;
+        text-decoration: none;
+        display: block;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .task-entry-card:hover {
+        transform: translateX(8px);
+        border-color: rgba(57, 211, 242, 0.3);
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .task-entry-card::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--task-accent);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .task-entry-card.priority-High::after {
+        background: #f7768e;
+        opacity: 1;
+    }
+
+    .task-entry-card.priority-Medium::after {
+        background: #e0af68;
+        opacity: 1;
+    }
+
+    .task-entry-card.priority-Low::after {
+        background: #7aa2f7;
+        opacity: 1;
+    }
+
+    .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+
+    .card-id {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: #ffffff;
+        letter-spacing: 1px;
+    }
+
+    .card-body {
+        font-size: 14px;
+        color: #ffffff;
+        line-height: 1.6;
+        margin-bottom: 24px;
+    }
+
+    .card-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .meta-group {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .meta-point {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+    }
+
+    .analyze-node {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--task-accent);
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        white-space: nowrap;
+    }
+
+    /* --- Override global width 100% for filters --- */
+    .neural-filters .filter-input {
+        width: auto !important;
+        min-width: 140px;
+        flex-shrink: 0;
+    }
+
+    .neural-filters input[name="q"] {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .btn-new {
+        background: var(--task-accent);
+        color: #000;
+        font-weight: 800;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 12px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-new:hover {
+        transform: scale(1.05);
+        filter: brightness(1.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="tasks-main">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:40px;">
+        <div>
+            <h1 style="color:#fff; font-size:36px; font-weight:900; letter-spacing:-1px;">TASKS</h1>
+            <div
+                style="font-family:var(--font-mono); font-size:10px; color:#ffffff; text-transform:uppercase; letter-spacing:2px;">
+                CENTRAL_TASK_REGISTRY // v9.0</div>
+        </div>
+        {% if role == 'manager' %}
+        <a href="{{ url_for('tasks.new_task') }}" class="btn-new">
+            <i data-lucide="plus-circle" style="width:16px; vertical-align:middle; margin-right:4px;"></i> Create New
+            Task
+        </a>
+        {% endif %}
+    </div>
+
+    <form class="neural-filters" method="GET" action="{{ url_for('tasks.tasks') }}">
+        <div style="position:relative; flex:1;">
+            <i data-lucide="search"
+                style="position:absolute; left:16px; top:50%; transform:translateY(-50%); width:14px; color:#ffffff;"></i>
+            <input type="text" name="q" class="filter-input" placeholder="Search tasks..."
+                value="{{ request.args.get('q', '') }}" style="padding-left:44px; width:100%;">
+        </div>
+
+        <select name="status" class="filter-input" onchange="this.form.submit()">
+            <option value="All" {{ 'selected' if request.args.get('status')=='All' }}>ALL_STATUS</option>
+            <option value="Pending" {{ 'selected' if request.args.get('status')=='Pending' }}>PENDING</option>
+            <option value="In Progress" {{ 'selected' if request.args.get('status')=='In Progress' }}>IN_PROGRESS
+            </option>
+            <option value="Completed" {{ 'selected' if request.args.get('status')=='Completed' }}>COMPLETED</option>
+            <option value="Delayed" {{ 'selected' if request.args.get('status')=='Delayed' }}>DELAYED</option>
+        </select>
+
+        <select name="priority" class="filter-input" onchange="this.form.submit()">
+            <option value="All" {{ 'selected' if request.args.get('priority')=='All' }}>ALL_PRIORITIES</option>
+            <option value="High" {{ 'selected' if request.args.get('priority')=='High' }}>URGENT</option>
+            <option value="Medium" {{ 'selected' if request.args.get('priority')=='Medium' }}>NORMAL</option>
+            <option value="Low" {{ 'selected' if request.args.get('priority')=='Low' }}>LOW</option>
+        </select>
+
+        {% if request.args.get('q') or request.args.get('status') or request.args.get('priority') %}
+        <a href="{{ url_for('tasks.tasks') }}"
+            style="color:var(--task-accent); font-family:var(--font-mono); font-size:11px; text-decoration:none;">//
+            RESET</a>
+        {% endif %}
+    </form>
+
+    <div class="task-stack">
+        {% if tasks %}
+        {% for task in tasks %}
+        <a href="{{ url_for('tasks.task_details', task_id=task.id) }}"
+            class="task-entry-card priority-{{ task.priority }}">
+            <div class="card-head">
+                <div>
+                    <h3 class="card-title">{{ task.title }}</h3>
+                    <div class="card-id">REGISTRY_ID: {{ task.id|string|truncate(12, True, '')|upper }}</div>
+                </div>
+                <span
+                    class="role-badge role-{{ 'admin' if task.status == 'Delayed' else ('employee' if task.status in ['Completed', 'In Progress'] else 'manager') }}"
+                    style="font-size:10px;">
+                    {{ task.status|upper }}
+                </span>
+            </div>
+
+            <div class="card-body">{{ task.description[:240] }}...</div>
+
+            <div class="card-foot">
+                <div class="meta-group">
+                    <div class="meta-point">
+                        <i data-lucide="calendar" style="width:14px; color:#ffffff;"></i>
+                        <span style="color:#ffffff;">DEADLINE:</span>
+                        <span style="color:#fff;">{{ task.deadline }}</span>
+                    </div>
+                    <div class="meta-point">
+                        <i data-lucide="shield-alert" style="width:14px; color:#ffffff;"></i>
+                        <span style="color:#ffffff;">RISK_INDEX:</span>
+                        <span class="{% if task.risk_score > 70 %}text-high{% else %}text-nominal{% endif %}"
+                            style="font-weight:800;">{{ task.risk_score or '0' }}%</span>
+                    </div>
+                </div>
+                <div class="analyze-node">
+                    ANALYZE_NODE →</div>
+            </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div
+            style="padding:100px; text-align:center; background:rgba(255,255,255,0.01); border:1px dashed var(--task-border); border-radius:24px;">
+            <i data-lucide="inbox" style="width:48px; height:48px; color:#ffffff; margin-bottom:20px;"></i>
+            <div style="font-family:var(--font-mono); color:#ffffff; font-size:14px;">//
+                NO_TASKS_FOUND</div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+</script>
+{% endblock %}

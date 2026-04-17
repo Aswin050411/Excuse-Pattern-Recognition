@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Neural_Intelligence — EXCUSE_AI{% endblock %}
+{% block breadcrumb %}Analytics / AI Intelligence{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --ai-accent: #39d3f2;
+        --ai-bg: rgba(13, 17, 23, 0.85);
+        --ai-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .analytics-container {
+        padding: 40px 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    .ai-hero-panel {
+        background: radial-gradient(circle at 50% 50%, rgba(57, 211, 242, 0.1) 0%, transparent 70%), var(--ai-bg);
+        backdrop-filter: blur(24px);
+        border: 1px solid var(--ai-border);
+        border-radius: 32px;
+        padding: 60px;
+        text-align: center;
+        margin-bottom: 32px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .ai-hero-panel::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, transparent 0%, rgba(57, 211, 242, 0.05) 100%);
+        pointer-events: none;
+    }
+
+    .score-display {
+        font-size: 84px;
+        font-weight: 900;
+        color: #fff;
+        line-height: 1;
+        letter-spacing: -4px;
+        text-shadow: 0 0 30px rgba(57, 211, 242, 0.4);
+        margin-bottom: 8px;
+    }
+
+    .insight-grid {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 32px;
+    }
+
+    @media (max-width: 1000px) {
+        .insight-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .neural-card {
+        background: var(--ai-bg);
+        border: 1px solid var(--ai-border);
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+    }
+
+    .terminal-box {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 12px;
+        padding: 20px;
+        font-family: var(--font-mono);
+        font-size: 13px;
+        color: #ffffff;
+        border-left: 4px solid var(--ai-accent);
+        line-height: 1.6;
+    }
+
+    .signal-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        font-size: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    {% include 'partials/_analytics_nav.html' %}
+
+    <div
+        style="margin-top: 30px; margin-bottom: 40px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <h1 style="color:#fff; font-size:32px; font-weight:800; letter-spacing:-0.5px;">Cognitive_Intelligence</h1>
+            <div
+                style="font-family:var(--font-mono); font-size:10px; color:#ffffff; text-transform:uppercase; letter-spacing:2px;">
+                NEURAL_PATTERN_RECOGNITION // AGENT_LEVEL: ELITE</div>
+        </div>
+        {% if data.ai %}
+        <span class="role-badge role-employee"
+            style="background:rgba(158,206,106,0.1); color:#9ece6a; border-color:rgba(158,206,106,0.2);">●
+            SYSTEM_ACTIVE</span>
+        {% else %}
+        <span class="role-badge" style="background:rgba(255,255,255,0.05); color:#ffffff;">○
+            SYSTEM_STANDBY</span>
+        {% endif %}
+    </div>
+
+    {% if not data.ai %}
+    <div class="ai-hero-panel" style="padding:100px;">
+        <i data-lucide="brain-circuit"
+            style="width:64px; height:64px; color:rgba(255,255,255,1.0); margin-bottom:24px;"></i>
+        <h2 style="color:#fff; margin-bottom:12px;">INSUFFICIENT_DATA_STREAM</h2>
+        <p style="color:#ffffff; max-width:400px; margin:0 auto; font-size:14px;">Increase telemetry input
+            (excuse submissions) to initialize behavioral pattern analysis core.</p>
+    </div>
+    {% else %}
+
+    <div class="ai-hero-panel">
+        <div class="score-display">{{ data.ai.behavioral_intelligence_score }}</div>
+        <div
+            style="font-family:var(--font-mono); font-size:11px; color:var(--ai-accent); text-transform:uppercase; letter-spacing:4px; font-weight:700;">
+            BEHAVIORAL_INTELLIGENCE_QUOTIENT</div>
+
+        <div
+            style="margin-top:24px; display:inline-flex; align-items:center; gap:8px; padding:6px 16px; background:rgba(255,255,255,0.03); border-radius:12px; font-size:12px; border:1px solid rgba(255,255,255,0.05);">
+            <span style="color:#ffffff;">Confidence:</span>
+            <span class="{% if data.ai.confidence.score > 75 %}text-nominal{% else %}text-warning{% endif %}"
+                style="font-weight:800;">{{ data.ai.confidence.label }} ({{ data.ai.confidence.score }}%)</span>
+        </div>
+    </div>
+
+    <div class="insight-grid">
+        <!-- Main: Synthesis -->
+        <div class="main-col">
+            <div class="neural-card">
+                <div style="font-family:var(--font-mono); font-size:10px; color:#ffffff; margin-bottom:16px;">
+                    >> EXECUTIVE_SYNTHESIS_STREAM</div>
+                <div class="terminal-box">
+                    {{ data.executive_summary or "ANALYZING_BEHAVIORAL_VECTORS..." }}
+                </div>
+            </div>
+
+            <div class="neural-card">
+                <div style="font-family:var(--font-mono); font-size:10px; color:#ffffff; margin-bottom:20px;">
+                    SCORE_COMPOSITION_MATRIX</div>
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:16px;">
+                    <div
+                        style="padding:20px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.03);">
+                        <div style="font-size:11px; color: #ffffff; margin-bottom:4px;">Authenticity</div>
+                        <div style="font-size:24px; font-weight:800; color:#9ece6a;">+{{
+                            data.ai.explainability.auth_component }}</div>
+                    </div>
+                    <div
+                        style="padding:20px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.03);">
+                        <div style="font-size:11px; color: #ffffff; margin-bottom:4px;">Stability</div>
+                        <div style="font-size:24px; font-weight:800; color:#7aa2f7;">+{{
+                            data.ai.explainability.risk_component }}</div>
+                    </div>
+                    <div
+                        style="padding:20px; background:rgba(255,255,255,0.02); border-radius:12px; border:1px solid rgba(255,255,255,0.03);">
+                        <div style="font-size:11px; color: #ffffff; margin-bottom:4px;">Penalty</div>
+                        <div style="font-size:24px; font-weight:800; color:#f7768e;">-{{
+                            data.ai.explainability.delay_penalty }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Side: Signals -->
+        <div class="side-col">
+            <div class="neural-card">
+                <div style="font-family:var(--font-mono); font-size:10px; color: #ffffff; margin-bottom:20px;">
+                    DETECTED_SIGNALS</div>
+
+                {% if data.ai.behavior_drift %}
+                <div class="signal-item" style="border-color:rgba(247,118,142,0.2); background:rgba(247,118,142,0.05);">
+                    <i data-lucide="trending-down" style="width:16px; color:#f7768e;"></i>
+                    <span style="color:#f7768e; font-weight:600;">Drift: {{ data.ai.drift_magnitude }}% Drop</span>
+                </div>
+                {% endif %}
+
+                {% if data.ai.risk_momentum == 'Escalating' %}
+                <div class="signal-item" style="border-color:rgba(224,175,104,0.2); background:rgba(224,175,104,0.05);">
+                    <i data-lucide="zap" style="width:16px; color:#e0af68;"></i>
+                    <span style="color:#e0af68; font-weight:600;">Escalating Momentum</span>
+                </div>
+                {% endif %}
+
+                {% if not data.ai.behavior_drift and data.ai.risk_momentum != 'Escalating' %}
+                <div class="signal-item" style="border-color:rgba(158,206,106,0.2); background:rgba(158,206,106,0.05);">
+                    <i data-lucide="check-circle" style="width:16px; color:#9ece6a;"></i>
+                    <span style="color:#9ece6a; font-weight:600;">System_Nominal</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="neural-card">
+                <div style="font-family:var(--font-mono); font-size:10px; color: #ffffff; margin-bottom:20px;">
+                    RECOGNITION_FEED</div>
+                <div style="display:flex; flex-direction:column; gap:12px;">
+                    {% for insight in data.ai_insights %}
+                    <div style="display:flex; gap:10px; font-size:12px; line-height:1.5; color:rgba(255,255,255,0.7);">
+                        <span
+                            class="{% if insight.severity == 'critical' %}text-delayed{% elif insight.severity == 'warning' %}text-warning{% else %}text-nominal{% endif %}">■</span>
+                        {{ insight.text }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+</script>
+{% endblock %}

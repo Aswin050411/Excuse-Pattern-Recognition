@@ -1,0 +1,420 @@
+{% extends "base.html" %}
+
+{% block title %}Create_Task — EXCUSE_AI{% endblock %}
+{% block breadcrumb %}Tasks / New Protocol{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --form-accent: #39d3f2;
+        --form-bg: rgba(13, 17, 23, 0.9);
+        --form-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .form-container {
+        padding: 60px 24px;
+        display: flex;
+        justify-content: center;
+        min-height: calc(100vh - 100px);
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    .neural-form-card {
+        background: var(--form-bg);
+        backdrop-filter: blur(24px);
+        border: 1px solid var(--form-border);
+        border-radius: 32px;
+        padding: 40px;
+        width: 100%;
+        max-width: 720px;
+        box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
+    }
+
+    .form-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .form-input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        color: #fff;
+        padding: 12px 16px;
+        font-size: 14px;
+        outline: none;
+        transition: all 0.2s;
+        box-sizing: border-box;
+    }
+
+    .form-input:focus {
+        border-color: var(--form-accent);
+        background: rgba(57, 211, 242, 0.05);
+        box-shadow: 0 0 20px rgba(57, 211, 242, 0.1);
+    }
+
+    /* Dark dropdown options */
+    select.form-input {
+        background-color: #0d1117;
+        color: #e6edf3;
+        cursor: pointer;
+    }
+
+    select.form-input option {
+        background-color: #161b22;
+        color: #e6edf3;
+        padding: 8px;
+    }
+
+    select.form-input option:disabled {
+        color: #484f58;
+    }
+
+    select.form-input option:hover,
+    select.form-input option:checked {
+        background-color: #1c2128;
+        color: #39d3f2;
+    }
+
+    /* Dark date input */
+    input[type="date"].form-input {
+        color-scheme: dark;
+        color: #e6edf3;
+    }
+
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .btn-submit {
+        background: var(--form-accent);
+        color: #000;
+        border: none;
+        padding: 14px;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 30px;
+        transition: all 0.2s;
+    }
+
+    .btn-submit:hover {
+        transform: scale(1.02);
+        filter: brightness(1.1);
+    }
+
+    .btn-abort {
+        display: block;
+        text-align: center;
+        padding: 12px;
+        color: #ffffff;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        text-decoration: none;
+        margin-top: 10px;
+    }
+
+    /* AI Suggestion Badge */
+    .ai-suggest-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(57, 211, 242, 0.1);
+        border: 1px solid rgba(57, 211, 242, 0.2);
+        border-radius: 6px;
+        color: var(--form-accent);
+        font-size: 10px;
+        font-weight: 700;
+        font-family: var(--font-mono);
+        cursor: pointer;
+        margin-left: 10px;
+        transition: all 0.2s;
+        vertical-align: middle;
+    }
+
+    .ai-suggest-badge:hover {
+        background: var(--form-accent);
+        color: #000;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="neural-form-card">
+        <div style="text-align:center; margin-bottom:40px;">
+            <h1 style="color:#fff; font-size:28px; font-weight:900; letter-spacing:-1px;">Create_Task</h1>
+            <div class="form-label" style="justify-content:center;">TASK_ASSIGNMENT // DATA_ENTRY</div>
+        </div>
+
+        <form method="POST" id="taskForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+            <div style="margin-bottom:24px;">
+                <label for="title" class="form-label">Task Title</label>
+                <input type="text" id="title" name="title" class="form-input" required
+                    placeholder="e.g. System Optimization" maxlength="200">
+            </div>
+
+            <div style="margin-bottom:24px;">
+                <label for="description" class="form-label">Task Description</label>
+                <textarea id="description" name="description" rows="4" class="form-input"
+                    style="resize:vertical; min-height:80px;" placeholder="Define task details..." minlength="10"
+                    required></textarea>
+            </div>
+
+            <div class="form-row" style="margin-bottom:24px;">
+                <div>
+                    <label for="assigned_to" class="form-label">Assigned User</label>
+                    <select id="assigned_to" name="assigned_to" class="form-input" required>
+                        <option value="" disabled selected>SELECT_USER...</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.full_name }} ({{ user.role }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label for="category" class="form-label">Task Category</label>
+                    <select id="category" name="category" class="form-input">
+                        <option value="General">General</option>
+                        <option value="Development">Development</option>
+                        <option value="Design">Design</option>
+                        <option value="Research">Research</option>
+                        <option value="Technical">Technical</option>
+                        <option value="Security">Security</option>
+                        <option value="Infrastructure">Infrastructure</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-bottom:24px;">
+                <label for="complexity" class="form-label">Complexity Level: <span id="complexityVal"
+                        style="color:var(--form-accent);">1</span></label>
+                <input type="range" id="complexity" name="complexity" min="1" max="10" value="1" step="1"
+                    style="width:100%; accent-color:var(--form-accent);">
+            </div>
+
+            <!-- AI Risk Feedback -->
+            <div id="feasibilityWarning"
+                style="display:none; padding:16px; border-radius:12px; background:rgba(224,175,104,0.1); border:1px solid rgba(224,175,104,0.2); margin-bottom:24px;">
+                <div style="display:flex; gap:12px; align-items:flex-start;">
+                    <i data-lucide="zap" style="width:16px; color:#e0af68; margin-top:2px;"></i>
+                    <div style="font-size:12px; color:#e0af68; font-weight:600;" id="warningText"></div>
+                </div>
+            </div>
+
+            <div class="form-row" style="margin-bottom:24px;">
+                <div>
+                    <label for="priority" class="form-label">
+                        Urgency Level
+                        <span id="prioSuggestion" class="ai-suggest-badge" style="display:none;"
+                            onclick="applySuggestion()">
+                            <i data-lucide="sparkles" style="width:10px;"></i>
+                            Suggest: <span id="suggestedVal"></span>
+                        </span>
+                    </label>
+                    <select id="priority" name="priority" class="form-input">
+                        <option value="Low">Low</option>
+                        <option value="Medium" selected>Normal</option>
+                        <option value="High">High</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="deadline" class="form-label">Completion Deadline</label>
+                    <input type="date" id="deadline" name="deadline" class="form-input" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div>
+                    <label for="est_hours" class="form-label">Estimate Hours</label>
+                    <input type="number" id="est_hours" name="est_hours" class="form-input" min="0" max="500" value="0">
+                </div>
+                <div>
+                    <label for="est_minutes" class="form-label">Estimate Mins</label>
+                    <input type="number" id="est_minutes" name="est_minutes" class="form-input" min="0" max="59"
+                        value="0">
+                </div>
+            </div>
+
+            <!-- Adaptive Estimation Hint -->
+            <div id="estimationHint"
+                style="display:none; padding:12px; border-radius:12px; background:rgba(57,211,242,0.05); border:1px solid rgba(57,211,242,0.1); margin-top:12px; margin-bottom:24px;">
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <i data-lucide="brain-circuit" style="width:14px; color:var(--form-accent);"></i>
+                    <div style="font-size:11px; color:#ffffff;" id="hintText"></div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Save Task</button>
+            <a href="{{ url_for('tasks.tasks') }}" class="btn-abort">// CANCEL</a>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('deadline').setAttribute('min', today);
+
+        const compInput = document.getElementById('complexity');
+        const compVal = document.getElementById('complexityVal');
+        compInput.addEventListener('input', () => compVal.innerText = compInput.value);
+
+        // --- Utils ---
+        function getCSRF() {
+            return document.querySelector('input[name="csrf_token"]').value;
+        }
+
+        // --- Tier 5: Adaptive Estimation Logic ---
+        const estimationHint = document.getElementById('estimationHint');
+        const hintText = document.getElementById('hintText');
+        const estHours = document.getElementById('est_hours');
+        const estMinutes = document.getElementById('est_minutes');
+
+        // Simple cache
+        const estimationCache = {};
+
+        function updateEstimationHint() {
+            const userId = document.getElementById('assigned_to').value;
+            if (!userId) {
+                estimationHint.style.display = 'none';
+                return;
+            }
+
+            const fetchBias = (id) => {
+                if (estimationCache[id]) return Promise.resolve(estimationCache[id]);
+                return fetch(`/api/user/estimation-bias?user_id=${id}`)
+                    .then(r => {
+                        if (!r.ok) throw new Error('Network fault');
+                        return r.json();
+                    })
+                    .then(data => {
+                        estimationCache[id] = data.bias || 1.0;
+                        return estimationCache[id];
+                    });
+            };
+
+            fetchBias(userId)
+                .then(bias => {
+                    if (bias > 1.05) {
+                        const h = parseInt(estHours.value) || 0;
+                        const m = parseInt(estMinutes.value) || 0;
+                        const totalMins = h * 60 + m;
+                        if (totalMins > 0) {
+                            const recommended = Math.round(totalMins * bias);
+                            const buffer = recommended - totalMins;
+                            hintText.innerHTML = `<strong>COGNITIVE_CALIBRATION:</strong> This agent tends to under-estimate by ${Math.round((bias - 1) * 100)}%. Consider adding a <strong>${buffer} min</strong> buffer for realistic planning.`;
+                            estimationHint.style.display = 'block';
+                        } else {
+                            estimationHint.style.display = 'none';
+                        }
+                    } else {
+                        estimationHint.style.display = 'none';
+                    }
+                })
+                .catch(err => console.warn('Estimation bias fetch failed:', err));
+        }
+
+        document.getElementById('assigned_to').addEventListener('change', updateEstimationHint);
+        [estHours, estMinutes].forEach(el => el.addEventListener('input', updateEstimationHint));
+
+
+        // Debounce AI Suggestions
+        let debounceTimer;
+        const titleInput = document.getElementById('title');
+        const descInput = document.getElementById('description');
+        let currentSuggestedPrio = null;
+
+        window.applySuggestion = function () {
+            if (currentSuggestedPrio) {
+                const sel = document.getElementById('priority');
+                sel.value = currentSuggestedPrio;
+                sel.style.borderColor = 'var(--form-accent)';
+                setTimeout(() => sel.style.borderColor = '', 1000);
+                document.getElementById('prioSuggestion').style.display = 'none';
+                currentSuggestedPrio = null;
+            }
+        };
+
+        function getSuggestions() {
+            const title = titleInput.value.trim();
+            const description = descInput.value.trim();
+            const assigned_to = document.getElementById('assigned_to').value;
+            const hours = document.getElementById('est_hours').value;
+            const mins = document.getElementById('est_minutes').value;
+            const estTotal = (parseInt(hours) || 0) * 60 + (parseInt(mins) || 0);
+
+            if (title.length < 5) return;
+
+            fetch('{{ url_for("tasks.suggest_attributes") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRF()
+                },
+                body: JSON.stringify({ title, description, estimated_minutes: estTotal, user_id: assigned_to })
+            })
+                .then(r => {
+                    if (!r.ok) throw new Error('API error');
+                    return r.json();
+                })
+                .then(data => {
+                    // Priority suggestion (Confirmable UX)
+                    const prioSel = document.getElementById('priority');
+                    const badge = document.getElementById('prioSuggestion');
+                    if (data.suggested_priority && prioSel.value !== data.suggested_priority) {
+                        currentSuggestedPrio = data.suggested_priority;
+                        document.getElementById('suggestedVal').textContent = data.suggested_priority.toUpperCase();
+                        badge.style.display = 'inline-flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+
+                    // Risk warning
+                    const warnDiv = document.getElementById('feasibilityWarning');
+                    if (data.feasibility_risk > 50) {
+                        warnDiv.style.display = 'block';
+                        document.getElementById('warningText').innerText = data.feasibility_msg;
+                    } else {
+                        warnDiv.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Suggestion error:', err));
+        }
+
+        [titleInput, descInput].forEach(el => {
+            el.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(getSuggestions, 800);
+            });
+        });
+
+        ['assigned_to', 'est_hours', 'est_minutes'].forEach(id => {
+            document.getElementById(id).addEventListener('change', getSuggestions);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,424 @@
+{% extends "base.html" %}
+
+{% block title %}Authentication — EXCUSE_AI{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --neural-cyan: #39d3f2;
+        --neural-cyan-glow: rgba(57, 211, 242, 0.18);
+        --neural-cyan-dim: rgba(57, 211, 242, 0.08);
+        --login-bg: #03070a;
+        --panel-bg: #080c10;
+        --accent-purple: #6366f1;
+        --accent-purple-glow: rgba(99, 102, 241, 0.3);
+    }
+
+    .neural-login-page {
+        min-height: 100vh;
+        background: var(--login-bg);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        font-family: 'Geist', var(--font-sans), sans-serif;
+    }
+
+    /* Animated grid background layer */
+    .grid-overlay {
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(57, 211, 242, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(57, 211, 242, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        mask-image: radial-gradient(circle at 50% 50%, black 20%, transparent 100%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Left Hero Side */
+    .hero-side {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: 80px;
+        position: relative;
+        z-index: 2;
+        border-right: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .hero-eyebrow {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        color: var(--neural-cyan);
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        margin-bottom: 40px;
+    }
+
+    .eyebrow-line {
+        width: 30px;
+        height: 1px;
+        background: var(--neural-cyan);
+        box-shadow: 0 0 10px var(--neural-cyan);
+    }
+
+    .hero-headline {
+        font-size: clamp(56px, 6vw, 92px);
+        font-weight: 900;
+        line-height: 0.95;
+        letter-spacing: -0.04em;
+        color: #fff;
+        margin-bottom: 40px;
+    }
+
+    .hero-headline span {
+        display: block;
+    }
+
+    .text-gradient {
+        background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, var(--neural-cyan) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 30px rgba(57, 211, 242, 0.15));
+    }
+
+    .hero-description {
+        font-size: 18px;
+        line-height: 1.6;
+        color: #ffffff;
+        max-width: 480px;
+        margin-bottom: 60px;
+    }
+
+    /* Right Login Panel Side */
+    .login-side {
+        width: 100%;
+        max-width: 480px;
+        background: var(--panel-bg);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 3;
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.6);
+        animation: cardRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes cardRise {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 400px;
+        padding: 40px;
+    }
+
+    /* Refined Input Styling */
+    .neural-form-group {
+        margin-bottom: 24px;
+    }
+
+    .neural-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 10px;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .neural-input-wrap {
+        position: relative;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: visible;
+        /* CRITICAL for toggle visibility */
+    }
+
+    .neural-input-wrap:focus-within {
+        background: rgba(57, 211, 242, 0.04);
+        border-color: rgba(57, 211, 242, 0.5);
+        box-shadow: 0 0 30px rgba(57, 211, 242, 0.1);
+    }
+
+    .neural-input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        padding: 16px 48px;
+        color: #fff;
+        font-size: 15px;
+        outline: none;
+    }
+
+    .neural-icon-left {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #ffffff;
+        pointer-events: none;
+    }
+
+    /* Neural Password Toggle Fix */
+    .neural-toggle {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid rgba(57, 211, 242, 0.2);
+        background: rgba(57, 211, 242, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        z-index: 10;
+        /* Ensure it stays above input */
+    }
+
+    .neural-toggle:hover {
+        background: rgba(57, 211, 242, 0.15);
+        border-color: rgba(57, 211, 242, 0.5);
+        box-shadow: 0 0 15px rgba(57, 211, 242, 0.2);
+    }
+
+    .neural-core {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: var(--neural-cyan);
+        border-radius: 50%;
+        opacity: 0;
+        box-shadow: 0 0 10px var(--neural-cyan);
+    }
+
+    .neural-toggle.active .neural-core {
+        opacity: 1;
+        animation: corePulse 1.5s infinite;
+    }
+
+    @keyframes corePulse {
+
+        0%,
+        100% {
+            transform: scale(1);
+            opacity: 0.8;
+        }
+
+        50% {
+            transform: scale(1.5);
+            opacity: 1;
+        }
+    }
+
+    /* Primary Action Button */
+    .btn-neural-primary {
+        width: 100%;
+        padding: 16px;
+        background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+        border: none;
+        border-radius: 14px;
+        color: #fff;
+        font-weight: 700;
+        font-family: 'JetBrains Mono', monospace;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 10px 40px rgba(99, 102, 241, 0.3);
+        margin-top: 10px;
+    }
+
+    .btn-neural-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 50px rgba(99, 102, 241, 0.5);
+        filter: brightness(1.1);
+    }
+
+    .login-footer {
+        margin-top: 32px;
+        text-align: center;
+        font-size: 14px;
+        color: #ffffff;
+    }
+
+    .login-link {
+        color: var(--neural-cyan);
+        text-decoration: none;
+        font-weight: 600;
+        margin-left: 6px;
+    }
+
+    /* Ambient glow for the hero side */
+    .ambient-glow {
+        position: absolute;
+        width: 1000px;
+        height: 1000px;
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        animation: slowDrift 18s ease-in-out infinite alternate;
+    }
+
+    @keyframes slowDrift {
+        from {
+            transform: translate(0px, 0px);
+        }
+
+        to {
+            transform: translate(60px, 40px);
+        }
+    }
+
+    @media (max-width: 1100px) {
+        .hero-headline {
+            font-size: 60px;
+        }
+    }
+
+    @media (max-width: 900px) {
+        .neural-login-page {
+            flex-direction: column;
+        }
+
+        .hero-side {
+            padding: 40px;
+            flex: none;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .login-side {
+            padding: 60px 20px;
+        }
+
+        .hero-headline {
+            font-size: 48px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="neural-login-page">
+    <div class="grid-overlay"></div>
+    <div class="ambient-glow"></div>
+
+
+    <section class="login-side">
+        <div class="login-card">
+            <div style="margin-bottom: 40px;">
+                <h2 style="font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 8px;">Authentication</h2>
+                <p style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(255,255,255,0.3);">//
+                    authenticate to proceed</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div
+                style="padding: 12px 16px; border-radius: 10px; background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.2); color: #f85149; font-size: 13px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                <div class="neural-form-group">
+                    <label class="neural-label">Communication Node</label>
+                    <div class="neural-input-wrap">
+                        <i data-lucide="mail" class="neural-icon-left" style="width: 16px; height: 16px;"></i>
+                        <input type="email" name="email" class="neural-input" placeholder="identity@network.io" required
+                            autofocus>
+                    </div>
+                </div>
+
+                <div class="neural-form-group">
+                    <label class="neural-label">Access Sequence</label>
+                    <div class="neural-input-wrap">
+                        <i data-lucide="key-round" class="neural-icon-left" style="width: 16px; height: 16px;"></i>
+                        <input type="password" id="password" name="password" class="neural-input"
+                            placeholder="••••••••••••" required>
+                        <button type="button" class="neural-toggle" onclick="togglePasswordVisibility()">
+                            <span class="neural-core"></span>
+                            <i id="eye-icon" data-lucide="scan-eye"
+                                style="width: 16px; height: 16px; color: var(--neural-cyan); z-index: 2;"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-neural-primary" style="margin-top: 20px;">AUTHENTICATE →</button>
+            </form>
+
+            <div class="login-footer">
+                No account yet? <a href="{{ url_for('auth.register') }}" class="login-link">Request Access</a>
+
+                <div style="margin-top: 40px; display: flex; gap: 12px; justify-content: center;">
+                    <a href="{{ url_for('common.index') }}"
+                        style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.2); text-decoration: none; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">//
+                        HOME</a>
+                    <a href="#"
+                        style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.2); text-decoration: none; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.05); border-radius: 8px;">//
+                        CLEAR_SESSION</a>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+    // Ensure Lucide initializes for this standalone page (no sidebar calling it)
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    });
+
+    function togglePasswordVisibility() {
+        const passwordInput = document.getElementById('password');
+        const toggleBtn = document.querySelector('.neural-toggle');
+        const eyeIcon = document.getElementById('eye-icon');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleBtn.classList.add('active');
+            eyeIcon.setAttribute('data-lucide', 'eye-off');
+        } else {
+            passwordInput.type = 'password';
+            toggleBtn.classList.remove('active');
+            eyeIcon.setAttribute('data-lucide', 'eye');
+        }
+
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+</script>
+{% endblock %}

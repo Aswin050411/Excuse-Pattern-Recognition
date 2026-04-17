@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Neural_Intelligence — EXCUSE_AI{% endblock %}
+{% block breadcrumb %}Analytics / Trends{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --trend-accent: #39d3f2;
+        --trend-bg: rgba(13, 17, 23, 0.85);
+        --trend-border: rgba(255, 255, 255, 0.08);
+    }
+
+    .analytics-container {
+        padding: 40px 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    .chart-panel {
+        background: var(--trend-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--trend-border);
+        border-radius: 24px;
+        padding: 32px;
+        margin-bottom: 32px;
+        transition: border-color 0.3s;
+    }
+
+    .chart-panel:hover {
+        border-color: rgba(57, 211, 242, 0.2);
+    }
+
+    .panel-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: #ffffff;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .trend-header {
+        margin-bottom: 40px;
+        margin-top: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .tag-trend {
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 10px;
+        font-weight: 700;
+        font-family: var(--font-mono);
+        text-transform: uppercase;
+        background: rgba(57, 211, 242, 0.1);
+        color: var(--trend-accent);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container">
+    {% include 'partials/_analytics_nav.html' %}
+
+    <div class="trend-header">
+        <div>
+            <h1 style="color:#fff; font-size:32px; font-weight:800; letter-spacing:-0.5px;">Temporal_Analysis</h1>
+            <div class="panel-label">MAPPING_BEHAVIORAL_DRIFT_SEQUENCES // v4.01</div>
+        </div>
+        <div class="tag-trend">HISTORY_LOADED</div>
+    </div>
+
+    {% if error %}
+    <div
+        style="background:rgba(247,118,142,0.1); border:1px solid rgba(247,118,142,0.2); color:#f7768e; padding:16px; border-radius:12px; margin-bottom:24px; font-family:var(--font-mono); font-size:12px;">
+        <i data-lucide="alert-triangle" style="width:14px; margin-right:8px;"></i> ERROR: {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="chart-panel">
+        <div class="panel-label"><i data-lucide="trending-up" style="width:14px;"></i> Authenticity vs Avoidance Over
+            Time</div>
+        <div id="chart-trend" style="height: 350px;"></div>
+    </div>
+
+    <div class="chart-panel">
+        <div class="panel-label"><i data-lucide="bar-chart-3" style="width:14px;"></i> Category Frequency Analysis</div>
+        <div id="chart-categories" style="height: 350px;"></div>
+    </div>
+</div>
+
+<!-- DATA STORE FOR JS -->
+<div id="trend-data" style="display:none" data-dates='{{ (data.trend_dates if data else []) | tojson }}'
+    data-auth='{{ (data.trend_auth if data else []) | tojson }}' data-avoid='{{ (data.trend_avoid if data else []) | tojson }}'
+    data-categories='{{ (data.categories if data else {}) | tojson }}'>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        const store = document.getElementById('trend-data');
+        if (!store) return;
+
+        const dates = JSON.parse(store.dataset.dates || '[]');
+        const auth = JSON.parse(store.dataset.auth || '[]');
+        const avoid = JSON.parse(store.dataset.avoid || '[]');
+        const categories = JSON.parse(store.dataset.categories || '{}');
+
+        const commonLayout = {
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: '#ffffff', family: 'var(--font-mono)', size: 10 },
+            xaxis: { gridcolor: 'rgba(255,255,255,0.05)', zeroline: false, ticklen: 10 },
+            yaxis: { gridcolor: 'rgba(255,255,255,0.05)', zeroline: false },
+            margin: { t: 0, b: 40, l: 40, r: 20 },
+            showlegend: true,
+            legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 11 } }
+        };
+
+        // 1. Trend Chart
+        if (dates.length > 0) {
+            Plotly.newPlot('chart-trend', [
+                {
+                    x: dates, y: auth, type: 'scatter', mode: 'lines+markers', name: 'AUTHENTICITY',
+                    line: { color: '#39d3f2', width: 3, shape: 'spline' },
+                    marker: { size: 6, color: '#39d3f2' },
+                    fill: 'tozeroy', fillcolor: 'rgba(57, 211, 242, 0.05)'
+                },
+                {
+                    x: dates, y: avoid, type: 'scatter', mode: 'lines+markers', name: 'AVOIDANCE',
+                    line: { color: '#f7768e', width: 3, shape: 'spline' },
+                    marker: { size: 6, color: '#f7768e' },
+                    fill: 'tozeroy', fillcolor: 'rgba(247, 118, 142, 0.05)'
+                }
+            ], commonLayout, { responsive: true, displayModeBar: false });
+        } else {
+            document.getElementById('chart-trend').innerHTML = '<div style="padding:100px;text-align:center;color:#ffffff; font-family:var(--font-mono); font-size:11px;">// NO_TREND_SEQUENCES_DETECTED</div>';
+        }
+
+        // 2. Categories Chart
+        const catKeys = Object.keys(categories);
+        const catVals = Object.values(categories);
+        if (catKeys.length > 0) {
+            Plotly.newPlot('chart-categories', [{
+                x: catKeys, y: catVals, type: 'bar',
+                marker: {
+                    color: '#7aa2f7',
+                    line: { color: 'rgba(57, 211, 242, 0.5)', width: 1 }
+                }
+            }], { ...commonLayout, showlegend: false }, { responsive: true, displayModeBar: false });
+        } else {
+            document.getElementById('chart-categories').innerHTML = '<div style="padding:100px;text-align:center;color:#ffffff; font-family:var(--font-mono); font-size:11px;">// NO_CATEGORY_FREQUENCIES_DETECTED</div>';
+        }
+    });
+</script>
+{% endblock %}

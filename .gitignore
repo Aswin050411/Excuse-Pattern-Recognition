@@ -1,0 +1,105 @@
+# ------------------------------
+# Python
+# ------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment Variables (CRITICAL: never commit secrets)
+.env
+.env.*
+*.env
+
+# Database Files
+*.db
+*.sqlite3
+
+# Logs & Debug Output
+*.log
+logs/
+server_log.txt
+server_err.txt
+server_out.txt
+server_log_fresh.txt
+server_err_fresh.txt
+compile_output.txt
+index_status.txt
+bcrypt_server_log.txt
+fresh_server_log.txt
+final_server_log.txt
+debug_err.txt
+debug_out.txt
+
+# One-off utility scripts
+compile_check.py
+fix_bad_dates.py
+reset_user_pw.py
+test_admin_500.py
+verify_hashing_fix.py
+tools/test_session_cookie.py
+tools/test_ai_summary.py
+
+
+# Coverage & Testing
+.coverage
+.pytest_cache/
+.mypy_cache/
+
+# Build / Distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# OS
+Thumbs.db
+
+# Node (if frontend exists)
+node_modules/
+npm-debug.log
+yarn.lock
+
+# Synthetic Data Dumps
+synthetic_data/
+generated_data/
+risk_history_dump.json
+
+# Temporary
+tmp/
+temp/
+tmp_*.py
+tmp_*.sql
+
+# Uploads (user-generated content)
+uploads/
+
+# Deployment Artifacts & Sensitive Keys
+excuseai_deploy.zip
+*.zip
+temp_deploy_key
+temp_deploy_key.pub
+deploy/
+
+# Error & Debug Logs
+*_error.txt
+excuseai_error.txt
+
+# One-off Scripts
+auto_backfill.py
+check_db.py
+find_delay_id.py
+
