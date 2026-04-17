@@ -264,8 +264,7 @@ This project is developed for academic purposes.
 
 ## 👥 Contributors
 
-Developed as a college final year project
-Team:
+Developed as a college final year project with the help of my Team:
 - Aswin.E
 - Nadesh.M
 - vignesh.R
