@@ -271,7 +271,7 @@ Team:
 - vignesh.R
 - Inba Everton.M
 
-## 🙏 Acknowledgments
+## Tools
 
 - scikit-learn for ML algorithms
 - Flask for web framework
